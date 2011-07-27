@@ -1,0 +1,3 @@
+[submodule "MosquitoTensor"]
+	path = MosquitoTensor
+	url = git://github.com/SwampWalker/MosquitoTensor.git
