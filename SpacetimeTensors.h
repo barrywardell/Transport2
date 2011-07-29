@@ -21,6 +21,12 @@ struct geodesic_params {
   int type; /* Type of geodesic. 0=null, -1=time-like */
 };
 
+enum GeodesicType {
+  Timelike  = -1,
+  Null      = 0,
+  Spacelike = 1
+};
+
 class Spacetime {
   public:
     virtual void calc_all() {};
@@ -31,15 +37,16 @@ class Spacetime {
     virtual void calc_Rudddcd() {};
     virtual void calc_R() {};
     virtual void calc_Rcd() {};
+    Spacetime();
     virtual ~Spacetime() {};
-    
-    Tensor* guu;     /* Contravariant metric */
-    Tensor* gdd;     /* Covariant metric */
-    Tensor* Gudd;    /* Christoffel symbol */
-    Tensor* Ruddd;   /* Riemann */
-    Tensor* Rudddcd; /* Covariant derivative of Riemann */
-    Tensor* R;       /* Ricci scalar */
-    Tensor* Rcd;     /* Covariant derivative of Ricci scalar */
+
+    Tensor guu;     /* Contravariant metric */
+    Tensor gdd;     /* Covariant metric */
+    Tensor Gudd;    /* Christoffel symbol */
+    Tensor Ruddd;   /* Riemann */
+    Tensor Rudddcd; /* Covariant derivative of Riemann */
+    Tensor R;       /* Ricci scalar */
+    Tensor Rcd;     /* Covariant derivative of Ricci scalar */
 };
 
 
@@ -63,7 +70,6 @@ class Schwarzschild : public Spacetime {
     void calc_R();
     void calc_Rcd();
 
-    Schwarzschild();
     virtual ~Schwarzschild() {};
 };
 

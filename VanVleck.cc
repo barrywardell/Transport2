@@ -1,7 +1,7 @@
 /* Numerically solve the transport equation for the Van Vleck determinant
  * along a geodesic.
  *
- * Copyright (C) 2009 Barry Wardell
+ * Copyright (C) 2011 Barry Wardell
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -11,89 +11,74 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  */
+
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <math.h>
 #include <gsl/gsl_errno.h>
-#include <gsl/gsl_matrix.h>
 #include <gsl/gsl_odeiv.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_linalg.h>
+
 #include "SpacetimeTensors.h"
 
-#define DIMENSION 4
 #define NUM_EQS (5+16+1)
 
-enum GeodesicType {
-  Timelike  = -1,
-  Null      = 0,
-  Spacelike = 1
-};
-
-void setComponents(Tensor &t, const double* v)
-{
-  double* components = t.getComponents();
-  for (int i = 0; i < pow(DIMENSION, t.getRank()); i++) {
-    components[i] = v[i];
-  }
-}
-
-void getComponents(Tensor &t, double* v)
-{
-  double* components = t.getComponents();
-  for (int i = 0; i < pow(DIMENSION, t.getRank()); i++) {
-    v[i] = components[i];
-  }
-}
+#define SQR(x) ((x)*(x))
 
 /* RHS of our system of ODEs */
 int rhs (double tau, const double y[], double f[], void *params)
 {
   struct geodesic_params p = *((struct geodesic_params*) params);
-  Tensor::IndexType up = Tensor::UP;
-  Tensor::IndexType down = Tensor::DOWN;
-  double tauinv;
 
-  if(tau == 0)
+  /* Avoid dividing by zero initially - use l'Hopital's rule */
+  double tauinv;
+  if(tau == 0.)
     tauinv = 0;
   else
     tauinv = 1./tau;
 
+  /* Unpack the data into tensor objects */
+  Tensor x("^a"), Q("^a_b"), VV(0);
+  Tensor u("^a"), dQ("^a_b"), dVV(0);
+  double dr = y[4];
+  
+  x.setComponents(&y[0]);
+  Q.setComponents(&y[5]);
+  VV.setComponents(&y[21]);
+  u.setComponents(&f[0]);
+  
+  /* Compute metric, Christoffel and Riemann at the current point */
   Schwarzschild s;
-  
-  double r = y[1];
-  s.r = y[1];
-  s.theta = y[2];
-  s.M = 1.0;
-  double rp = y[4];
+  s.t   = x(0);
+  s.r   = x(1);
+  s.theta = x(2);
+  s.phi   = x(3);
+  s.M   = 1.0;
   s.calc_all();
-  
-  Tensor  u(1, up);
-  Tensor du(1, up);
-  Tensor  Q(2, up, down);
-  Tensor VV(0);
-  
-  setComponents(u,  &y[0]);
-  setComponents(Q,  &y[5]);
-  setComponents(VV, &y[21]);
-  
-  du.get(0) = r/(r-2*s.M)*p.e;
-  du.get(1) = rp;
-  du.get(2) = 0.0;
-  du.get(3) = p.l/gsl_pow_2(r);
-  
-  f[4] = (gsl_pow_2(p.l)*(r-3*s.M)+s.M*gsl_pow_2(r)*p.type)/gsl_pow_4(r);
-  
-  Tensor G = *s.Gudd;
-  Tensor R = *s.Ruddd;
-  Tensor dQ = (Q('a','d')*G('d','c','b') - G('a','c','d')*Q('c','b'))*du('c')
-    - tauinv*(Q('a','b') + Q('a','c')*Q('c','b')) - tau*R('a','c','b','d')*du('c')*du('d');
-  Tensor dVV = -tauinv*0.5 * VV * Q('a', 'a');
+  Tensor& G = s.Gudd;
+  Tensor& R = s.Ruddd;
 
-  getComponents(du, &f[0]);
-  getComponents(dQ, &f[5]);
-  getComponents(dVV,&f[21]);
+  /* Geodesic equations */
+  u(0) = s.r/(s.r-2*s.M)*p.e;
+  u(1) = dr;
+  u(2) = 0.0;
+  u(3) = p.l/SQR(s.r);
+  f[4] = (SQR(p.l)*(s.r-3*s.M)+s.M*SQR(s.r)*p.type)/SQR(SQR(s.r));
+  
+  /* Transport equation for Q */
+  dQ = (Q["ac"]*G["cbd"] - G["acd"]*Q["cb"])*u["d"]
+     - tauinv*(Q["ab"] + Q["ac"]*Q["cb"]) - tau*R["acbd"]*u["c"]*u["d"];
+
+  /* Q(theta,theta) blows up as theta*cot(theta) and makes the numerical
+   * integration break down. Since we know the analytic form, don't compute it
+   * numerically */
+  dQ(2,2) = 0.0;
+
+  /* Transport equation for the Van Vleck determinant */
+  dVV = -tauinv*0.5 * VV * Q["aa"];
+
+  /* Pack the data back into an array for GSL */
+  u.getComponents(&f[0]);
+  dQ.getComponents(&f[5]);
+  dVV.getComponents(&f[21]);
 
   return GSL_SUCCESS;
 }

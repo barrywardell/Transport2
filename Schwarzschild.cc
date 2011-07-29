@@ -14,18 +14,9 @@
 #include "SpacetimeTensors.h"
 #include <math.h>
 
-Schwarzschild::Schwarzschild()
+Spacetime::Spacetime()
+ : guu("^a^b"), gdd("_a_b"), Gudd("^a_b_c"), Ruddd("^a_b_c_d"), Rudddcd("^a_b_c_d_e"), R(0), Rcd("_a")
 {
-  Tensor::IndexType u = Tensor::UP;
-  Tensor::IndexType d = Tensor::DOWN;
-
-  guu     = new Tensor(2, u, u);
-  gdd     = new Tensor(2, d, d);
-  Gudd    = new Tensor(3, u, d, d);
-  Ruddd   = new Tensor(4, u, d, d, d);
-  Rudddcd = new Tensor(5, u, d, d, d, d);
-  R       = new Tensor(0);
-  Rcd     = new Tensor(1, d);
 }
 
 void Schwarzschild::calc_all()
@@ -44,10 +35,10 @@ void Schwarzschild::calc_guu()
   double sintheta2 = sintheta*sintheta;
   double r2 = r*r;
 
-  guu->get(0, 0) = -r/(r-2.0*M);
-  guu->get(1, 1) = (r-2.0*M)/r;
-  guu->get(2, 2) = 1/r2;
-  guu->get(3, 3) = 1/(r2*sintheta2);
+  guu(0, 0) = -r/(r-2.0*M);
+  guu(1, 1) = (r-2.0*M)/r;
+  guu(2, 2) = 1/r2;
+  guu(3, 3) = 1/(r2*sintheta2);
 }
 
 void Schwarzschild::calc_gdd()
@@ -55,128 +46,128 @@ void Schwarzschild::calc_gdd()
   double sintheta2 = sintheta*sintheta;
   double r2 = r*r;
 
-  gdd->get(0, 0) = -(r-2.0*M)/r;
-  gdd->get(1, 1) = r/(r-2.0*M);
-  gdd->get(2, 2) = r2;
-  gdd->get(3, 3) = r2*sintheta2;
+  gdd(0, 0) = -(r-2.0*M)/r;
+  gdd(1, 1) = r/(r-2.0*M);
+  gdd(2, 2) = r2;
+  gdd(3, 3) = r2*sintheta2;
 }
 
 void Schwarzschild::calc_Gudd()
 {
-  Gudd->get(0, 0, 1) = -(M/((2*M - r)*r));
-  Gudd->get(0, 1, 0) = -(M/((2*M - r)*r));
-  Gudd->get(1, 0, 0) = (M*(-2*M + r))/pow(r,3);
-  Gudd->get(1, 1, 1) = M/((2*M - r)*r);
-  Gudd->get(1, 2, 2) = 2*M - r;
-  Gudd->get(1, 3, 3) = (2*M - r)*pow(sin(theta),2);
-  Gudd->get(2, 1, 2) = 1/r;
-  Gudd->get(2, 2, 1) = 1/r;
-  Gudd->get(2, 3, 3) = -(cos(theta)*sin(theta));
-  Gudd->get(3, 1, 3) = 1/r;
-  Gudd->get(3, 2, 3) = cos(theta)/sin(theta);
-  Gudd->get(3, 3, 1) = 1/r;
-  Gudd->get(3, 3, 2) = cos(theta)/sin(theta);
+  Gudd(0, 0, 1) = -(M/((2*M - r)*r));
+  Gudd(0, 1, 0) = -(M/((2*M - r)*r));
+  Gudd(1, 0, 0) = (M*(-2*M + r))/pow(r,3);
+  Gudd(1, 1, 1) = M/((2*M - r)*r);
+  Gudd(1, 2, 2) = 2*M - r;
+  Gudd(1, 3, 3) = (2*M - r)*pow(sin(theta),2);
+  Gudd(2, 1, 2) = 1/r;
+  Gudd(2, 2, 1) = 1/r;
+  Gudd(2, 3, 3) = -(cos(theta)*sin(theta));
+  Gudd(3, 1, 3) = 1/r;
+  Gudd(3, 2, 3) = cos(theta)/sin(theta);
+  Gudd(3, 3, 1) = 1/r;
+  Gudd(3, 3, 2) = cos(theta)/sin(theta);
 }
 
 void Schwarzschild::calc_Ruddd()
 {
-  Ruddd->get(0, 1, 0, 1) = (-2*M)/((2*M - r)*pow(r,2));
-  Ruddd->get(0, 1, 1, 0) = (2*M)/((2*M - r)*pow(r,2));
-  Ruddd->get(0, 2, 0, 2) = (M*(-2*M + r))/((2*M - r)*r);
-  Ruddd->get(0, 2, 2, 0) = -((M*(-2*M + r))/((2*M - r)*r));
-  Ruddd->get(0, 3, 0, 3) = -((M*pow(sin(theta),2))/r);
-  Ruddd->get(0, 3, 3, 0) = (M*pow(sin(theta),2))/r;
-  Ruddd->get(1, 0, 0, 1) = (2*M*(1 - (2*M)/r))/pow(r,3);
-  Ruddd->get(1, 0, 1, 0) = (-2*M*(1 - (2*M)/r))/pow(r,3);
-  Ruddd->get(1, 2, 1, 2) = (M*(1 - (2*M)/r))/(2*M - r);
-  Ruddd->get(1, 2, 2, 1) = -((M*(1 - (2*M)/r))/(2*M - r));
-  Ruddd->get(1, 3, 1, 3) = (M*(1 - (2*M)/r)*pow(sin(theta),2))/(2*M - r);
-  Ruddd->get(1, 3, 3, 1) = -((M*(1 - (2*M)/r)*pow(sin(theta),2))/(2*M - r));
-  Ruddd->get(2, 0, 0, 2) = -((M*(-2*M + r))/pow(r,4));
-  Ruddd->get(2, 0, 2, 0) = (M*(-2*M + r))/pow(r,4);
-  Ruddd->get(2, 1, 1, 2) = -(M/((2*M - r)*pow(r,2)));
-  Ruddd->get(2, 1, 2, 1) = M/((2*M - r)*pow(r,2));
-  Ruddd->get(2, 3, 2, 3) = (2*M*pow(sin(theta),2))/r;
-  Ruddd->get(2, 3, 3, 2) = (-2*M*pow(sin(theta),2))/r;
-  Ruddd->get(3, 0, 0, 3) = (M*(2*M - r))/pow(r,4);
-  Ruddd->get(3, 0, 3, 0) = -((M*(2*M - r))/pow(r,4));
-  Ruddd->get(3, 1, 1, 3) = -(M/((2*M - r)*pow(r,2)));
-  Ruddd->get(3, 1, 3, 1) = M/((2*M - r)*pow(r,2));
-  Ruddd->get(3, 2, 2, 3) = (-2*M)/r;
-  Ruddd->get(3, 2, 3, 2) = (2*M)/r;
+  Ruddd(0, 1, 0, 1) = (-2*M)/((2*M - r)*pow(r,2));
+  Ruddd(0, 1, 1, 0) = (2*M)/((2*M - r)*pow(r,2));
+  Ruddd(0, 2, 0, 2) = (M*(-2*M + r))/((2*M - r)*r);
+  Ruddd(0, 2, 2, 0) = -((M*(-2*M + r))/((2*M - r)*r));
+  Ruddd(0, 3, 0, 3) = -((M*pow(sin(theta),2))/r);
+  Ruddd(0, 3, 3, 0) = (M*pow(sin(theta),2))/r;
+  Ruddd(1, 0, 0, 1) = (2*M*(1 - (2*M)/r))/pow(r,3);
+  Ruddd(1, 0, 1, 0) = (-2*M*(1 - (2*M)/r))/pow(r,3);
+  Ruddd(1, 2, 1, 2) = (M*(1 - (2*M)/r))/(2*M - r);
+  Ruddd(1, 2, 2, 1) = -((M*(1 - (2*M)/r))/(2*M - r));
+  Ruddd(1, 3, 1, 3) = (M*(1 - (2*M)/r)*pow(sin(theta),2))/(2*M - r);
+  Ruddd(1, 3, 3, 1) = -((M*(1 - (2*M)/r)*pow(sin(theta),2))/(2*M - r));
+  Ruddd(2, 0, 0, 2) = -((M*(-2*M + r))/pow(r,4));
+  Ruddd(2, 0, 2, 0) = (M*(-2*M + r))/pow(r,4);
+  Ruddd(2, 1, 1, 2) = -(M/((2*M - r)*pow(r,2)));
+  Ruddd(2, 1, 2, 1) = M/((2*M - r)*pow(r,2));
+  Ruddd(2, 3, 2, 3) = (2*M*pow(sin(theta),2))/r;
+  Ruddd(2, 3, 3, 2) = (-2*M*pow(sin(theta),2))/r;
+  Ruddd(3, 0, 0, 3) = (M*(2*M - r))/pow(r,4);
+  Ruddd(3, 0, 3, 0) = -((M*(2*M - r))/pow(r,4));
+  Ruddd(3, 1, 1, 3) = -(M/((2*M - r)*pow(r,2)));
+  Ruddd(3, 1, 3, 1) = M/((2*M - r)*pow(r,2));
+  Ruddd(3, 2, 2, 3) = (-2*M)/r;
+  Ruddd(3, 2, 3, 2) = (2*M)/r;
 }
 
 void Schwarzschild::calc_Rudddcd()
 {
-  Rudddcd->get(0, 1, 0, 1, 1) = (6*M)/((2*M - r)*pow(r,3));
-  Rudddcd->get(0, 1, 0, 2, 2) = (3*M)/pow(r,2);
-  Rudddcd->get(0, 1, 0, 3, 3) = (3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(0, 1, 1, 0, 1) = (-6*M)/((2*M - r)*pow(r,3));
-  Rudddcd->get(0, 1, 2, 0, 2) = (-3*M)/pow(r,2);
-  Rudddcd->get(0, 1, 3, 0, 3) = (-3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(0, 2, 0, 1, 2) = (3*M)/pow(r,2);
-  Rudddcd->get(0, 2, 0, 2, 1) = (3*M)/pow(r,2);
-  Rudddcd->get(0, 2, 1, 0, 2) = (-3*M)/pow(r,2);
-  Rudddcd->get(0, 2, 2, 0, 1) = (-3*M)/pow(r,2);
-  Rudddcd->get(0, 3, 0, 1, 3) = (3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(0, 3, 0, 3, 1) = (3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(0, 3, 1, 0, 3) = (-3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(0, 3, 3, 0, 1) = (-3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(1, 0, 0, 1, 1) = (6*M*(2*M - r))/pow(r,5);
-  Rudddcd->get(1, 0, 0, 2, 2) = (3*M*pow(-2*M + r,2))/pow(r,4);
-  Rudddcd->get(1, 0, 0, 3, 3) = (3*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,4);
-  Rudddcd->get(1, 0, 1, 0, 1) = (6*M*(-2*M + r))/pow(r,5);
-  Rudddcd->get(1, 0, 2, 0, 2) = (-3*M*pow(-2*M + r,2))/pow(r,4);
-  Rudddcd->get(1, 0, 3, 0, 3) = (-3*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,4);
-  Rudddcd->get(1, 2, 1, 2, 1) = (3*M)/pow(r,2);
-  Rudddcd->get(1, 2, 2, 1, 1) = (-3*M)/pow(r,2);
-  Rudddcd->get(1, 2, 2, 3, 3) = (-3*M*(2*M - r)*pow(sin(theta),2))/r;
-  Rudddcd->get(1, 2, 3, 2, 3) = (3*M*(2*M - r)*pow(sin(theta),2))/r;
-  Rudddcd->get(1, 3, 1, 3, 1) = (3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(1, 3, 2, 3, 2) = (3*M*(2*M - r)*pow(sin(theta),2))/r;
-  Rudddcd->get(1, 3, 3, 1, 1) = (-3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(1, 3, 3, 2, 2) = (-3*M*(2*M - r)*pow(sin(theta),2))/r;
-  Rudddcd->get(2, 0, 0, 1, 2) = (3*M*(-2*M + r))/pow(r,5);
-  Rudddcd->get(2, 0, 0, 2, 1) = (3*M*(-2*M + r))/pow(r,5);
-  Rudddcd->get(2, 0, 1, 0, 2) = (3*M*(2*M - r))/pow(r,5);
-  Rudddcd->get(2, 0, 2, 0, 1) = (3*M*(2*M - r))/pow(r,5);
-  Rudddcd->get(2, 1, 1, 2, 1) = (3*M)/((2*M - r)*pow(r,3));
-  Rudddcd->get(2, 1, 2, 1, 1) = (-3*M)/((2*M - r)*pow(r,3));
-  Rudddcd->get(2, 1, 2, 3, 3) = (-3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(2, 1, 3, 2, 3) = (3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(2, 3, 1, 2, 3) = (3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(2, 3, 1, 3, 2) = (-3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(2, 3, 2, 1, 3) = (-3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(2, 3, 2, 3, 1) = (-6*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(2, 3, 3, 1, 2) = (3*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(2, 3, 3, 2, 1) = (6*M*pow(sin(theta),2))/pow(r,2);
-  Rudddcd->get(3, 0, 0, 1, 3) = (3*M*(-2*M + r))/pow(r,5);
-  Rudddcd->get(3, 0, 0, 3, 1) = (3*M*(-2*M + r))/pow(r,5);
-  Rudddcd->get(3, 0, 1, 0, 3) = (3*M*(2*M - r))/pow(r,5);
-  Rudddcd->get(3, 0, 3, 0, 1) = (3*M*(2*M - r))/pow(r,5);
-  Rudddcd->get(3, 1, 1, 3, 1) = (3*M)/((2*M - r)*pow(r,3));
-  Rudddcd->get(3, 1, 2, 3, 2) = (3*M)/pow(r,2);
-  Rudddcd->get(3, 1, 3, 1, 1) = (-3*M)/((2*M - r)*pow(r,3));
-  Rudddcd->get(3, 1, 3, 2, 2) = (-3*M)/pow(r,2);
-  Rudddcd->get(3, 2, 1, 2, 3) = (-3*M)/pow(r,2);
-  Rudddcd->get(3, 2, 1, 3, 2) = (3*M)/pow(r,2);
-  Rudddcd->get(3, 2, 2, 1, 3) = (3*M)/pow(r,2);
-  Rudddcd->get(3, 2, 2, 3, 1) = (6*M)/pow(r,2);
-  Rudddcd->get(3, 2, 3, 1, 2) = (-3*M)/pow(r,2);
-  Rudddcd->get(3, 2, 3, 2, 1) = (-6*M)/pow(r,2);
+  Rudddcd(0, 1, 0, 1, 1) = (6*M)/((2*M - r)*pow(r,3));
+  Rudddcd(0, 1, 0, 2, 2) = (3*M)/pow(r,2);
+  Rudddcd(0, 1, 0, 3, 3) = (3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(0, 1, 1, 0, 1) = (-6*M)/((2*M - r)*pow(r,3));
+  Rudddcd(0, 1, 2, 0, 2) = (-3*M)/pow(r,2);
+  Rudddcd(0, 1, 3, 0, 3) = (-3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(0, 2, 0, 1, 2) = (3*M)/pow(r,2);
+  Rudddcd(0, 2, 0, 2, 1) = (3*M)/pow(r,2);
+  Rudddcd(0, 2, 1, 0, 2) = (-3*M)/pow(r,2);
+  Rudddcd(0, 2, 2, 0, 1) = (-3*M)/pow(r,2);
+  Rudddcd(0, 3, 0, 1, 3) = (3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(0, 3, 0, 3, 1) = (3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(0, 3, 1, 0, 3) = (-3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(0, 3, 3, 0, 1) = (-3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(1, 0, 0, 1, 1) = (6*M*(2*M - r))/pow(r,5);
+  Rudddcd(1, 0, 0, 2, 2) = (3*M*pow(-2*M + r,2))/pow(r,4);
+  Rudddcd(1, 0, 0, 3, 3) = (3*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,4);
+  Rudddcd(1, 0, 1, 0, 1) = (6*M*(-2*M + r))/pow(r,5);
+  Rudddcd(1, 0, 2, 0, 2) = (-3*M*pow(-2*M + r,2))/pow(r,4);
+  Rudddcd(1, 0, 3, 0, 3) = (-3*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,4);
+  Rudddcd(1, 2, 1, 2, 1) = (3*M)/pow(r,2);
+  Rudddcd(1, 2, 2, 1, 1) = (-3*M)/pow(r,2);
+  Rudddcd(1, 2, 2, 3, 3) = (-3*M*(2*M - r)*pow(sin(theta),2))/r;
+  Rudddcd(1, 2, 3, 2, 3) = (3*M*(2*M - r)*pow(sin(theta),2))/r;
+  Rudddcd(1, 3, 1, 3, 1) = (3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(1, 3, 2, 3, 2) = (3*M*(2*M - r)*pow(sin(theta),2))/r;
+  Rudddcd(1, 3, 3, 1, 1) = (-3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(1, 3, 3, 2, 2) = (-3*M*(2*M - r)*pow(sin(theta),2))/r;
+  Rudddcd(2, 0, 0, 1, 2) = (3*M*(-2*M + r))/pow(r,5);
+  Rudddcd(2, 0, 0, 2, 1) = (3*M*(-2*M + r))/pow(r,5);
+  Rudddcd(2, 0, 1, 0, 2) = (3*M*(2*M - r))/pow(r,5);
+  Rudddcd(2, 0, 2, 0, 1) = (3*M*(2*M - r))/pow(r,5);
+  Rudddcd(2, 1, 1, 2, 1) = (3*M)/((2*M - r)*pow(r,3));
+  Rudddcd(2, 1, 2, 1, 1) = (-3*M)/((2*M - r)*pow(r,3));
+  Rudddcd(2, 1, 2, 3, 3) = (-3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(2, 1, 3, 2, 3) = (3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(2, 3, 1, 2, 3) = (3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(2, 3, 1, 3, 2) = (-3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(2, 3, 2, 1, 3) = (-3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(2, 3, 2, 3, 1) = (-6*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(2, 3, 3, 1, 2) = (3*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(2, 3, 3, 2, 1) = (6*M*pow(sin(theta),2))/pow(r,2);
+  Rudddcd(3, 0, 0, 1, 3) = (3*M*(-2*M + r))/pow(r,5);
+  Rudddcd(3, 0, 0, 3, 1) = (3*M*(-2*M + r))/pow(r,5);
+  Rudddcd(3, 0, 1, 0, 3) = (3*M*(2*M - r))/pow(r,5);
+  Rudddcd(3, 0, 3, 0, 1) = (3*M*(2*M - r))/pow(r,5);
+  Rudddcd(3, 1, 1, 3, 1) = (3*M)/((2*M - r)*pow(r,3));
+  Rudddcd(3, 1, 2, 3, 2) = (3*M)/pow(r,2);
+  Rudddcd(3, 1, 3, 1, 1) = (-3*M)/((2*M - r)*pow(r,3));
+  Rudddcd(3, 1, 3, 2, 2) = (-3*M)/pow(r,2);
+  Rudddcd(3, 2, 1, 2, 3) = (-3*M)/pow(r,2);
+  Rudddcd(3, 2, 1, 3, 2) = (3*M)/pow(r,2);
+  Rudddcd(3, 2, 2, 1, 3) = (3*M)/pow(r,2);
+  Rudddcd(3, 2, 2, 3, 1) = (6*M)/pow(r,2);
+  Rudddcd(3, 2, 3, 1, 2) = (-3*M)/pow(r,2);
+  Rudddcd(3, 2, 3, 2, 1) = (-6*M)/pow(r,2);
 }
 
 void Schwarzschild::calc_R()
 {
-  R->get(0) = 0;
+  R(0) = 0;
 }
 
 /* Covariant derivative of Ricci scalar contracted with 4-velocity */
 void Schwarzschild::calc_Rcd()
 {
-  Rcd->get(0) = 0;
-  Rcd->get(1) = 0;
-  Rcd->get(2) = 0;
-  Rcd->get(3) = 0;
+  Rcd(0) = 0;
+  Rcd(1) = 0;
+  Rcd(2) = 0;
+  Rcd(3) = 0;
 }
 

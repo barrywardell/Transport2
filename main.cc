@@ -19,14 +19,14 @@ int main(int argc, char* argv[])
   Tensor Q(2, u, d);
   Tensor u1(1, u);
 
-  u1.get(0) = sqrt(s.r/(s.r-3*s.M));
-  u1.get(1) = 0;
-  u1.get(2) = 0;
-  u1.get(3) = sqrt(s.M/(s.r-3*s.M))/s.r;
+  u1(0) = sqrt(s.r/(s.r-3*s.M));
+  u1(1) = 0;
+  u1(2) = 0;
+  u1(3) = sqrt(s.M/(s.r-3*s.M))/s.r;
 
-  Tensor G = *s.Gudd;
-  Tensor R = *s.Ruddd;
+  Tensor G = s.Gudd;
+  Tensor R = s.Ruddd;
   Tensor Qrhs = (Q('a', 'd')*G('d', 'c', 'b') - G('a', 'c', 'd')*Q('c', 'b'))*u1('c') 
   - Q('a', 'b') - Q('a','c')*Q('c','b') - R('a','c','b','d')*u1('c')*u1('d');
-  printf("%g\n", Qrhs.get(1,1));
+  printf("%g\n", Qrhs(1,1));
 }
