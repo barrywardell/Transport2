@@ -19,14 +19,13 @@
 
 #include "SpacetimeTensors.h"
 
-#define NUM_EQS (5+16+1)
-
 #define SQR(x) ((x)*(x))
 
 /* RHS of our system of ODEs */
 int rhs (double tau, const double y[], double f[], void *params)
 {
   struct geodesic_params p = *((struct geodesic_params*) params);
+  const double M = p.s.M;
 
   /* Avoid dividing by zero initially - use l'Hopital's rule */
   double tauinv;
@@ -35,37 +34,42 @@ int rhs (double tau, const double y[], double f[], void *params)
   else
     tauinv = 1./tau;
 
-  /* Unpack the data into tensor objects */
-  Tensor x("^a"), Q("^a_b"), VV(0);
-  Tensor u("^a"), dQ("^a_b"), dVV(0);
-  double dr = y[4];
-  
-  x.setComponents(&y[0]);
-  Q.setComponents(&y[5]);
-  VV.setComponents(&y[21]);
-  u.setComponents(&f[0]);
-  
+  /* Evolved tensors */
+  TensorList T(p.T);
+  T.setComponents(y);
+
+  Tensor& x  = T["x"];
+  Tensor& ur = T["ur"];
+  Tensor& Q  = T["Q"];
+  Tensor& VV = T["VV"];
+
+  /* Right hand side tensors */
+  TensorList dT(p.T);
+  dT.setComponents(f);
+
+  Tensor& dx  = dT["x"];
+  Tensor& dur = dT["ur"];
+  Tensor& dQ  = dT["Q"];
+  Tensor& dVV = dT["VV"];
+
   /* Compute metric, Christoffel and Riemann at the current point */
-  Schwarzschild s;
-  s.t   = x(0);
-  s.r   = x(1);
-  s.theta = x(2);
-  s.phi   = x(3);
-  s.M   = 1.0;
+  Schwarzschild& s = p.s;
+  s.setPoint(x);
   s.calc_all();
-  Tensor& G = s.Gudd;
-  Tensor& R = s.Ruddd;
+  Tensor& G = s["Gudd"];
+  Tensor& R = s["Ruddd"];
 
   /* Geodesic equations */
-  u(0) = s.r/(s.r-2*s.M)*p.e;
-  u(1) = dr;
-  u(2) = 0.0;
-  u(3) = p.l/SQR(s.r);
-  f[4] = (SQR(p.l)*(s.r-3*s.M)+s.M*SQR(s.r)*p.type)/SQR(SQR(s.r));
+  const double& r = x(1);
+  dx(0) = r/(r-2*M)*p.e;
+  dx(1) = ur();
+  dx(2) = 0.0;
+  dx(3) = p.l/SQR(r);
+  dur() = (SQR(p.l)*(r-3*M)+M*SQR(r)*p.type)/SQR(SQR(r));
   
   /* Transport equation for Q */
-  dQ = (Q["ac"]*G["cbd"] - G["acd"]*Q["cb"])*u["d"]
-     - tauinv*(Q["ab"] + Q["ac"]*Q["cb"]) - tau*R["acbd"]*u["c"]*u["d"];
+  dQ = (Q["ac"]*G["cbd"] - G["acd"]*Q["cb"])*dx["d"]
+     - tauinv*(Q["ab"] + Q["ac"]*Q["cb"]) - tau*R["acbd"]*dx["c"]*dx["d"];
 
   /* Q(theta,theta) blows up as theta*cot(theta) and makes the numerical
    * integration break down. Since we know the analytic form, don't compute it
@@ -76,39 +80,48 @@ int rhs (double tau, const double y[], double f[], void *params)
   dVV = -tauinv*0.5 * VV * Q["aa"];
 
   /* Pack the data back into an array for GSL */
-  u.getComponents(&f[0]);
-  dQ.getComponents(&f[5]);
-  dVV.getComponents(&f[21]);
+  dT.getComponents(f);
 
   return GSL_SUCCESS;
 }
 
 int main (int argc, char * argv[])
 {
-  int i;
+  /* Evolved tensors */
+  TensorList T;
+  T.append("x", "^a");   Tensor& x  = T["x"];  /* Position */
+  T.append("ur");        Tensor& ur = T["ur"]; /* Radial 4-velocity */
+  T.append("Q", "^a_b"); Tensor& Q  = T["Q"];  /* \sigma^a'_b' - \delta^a'_b' */
+  T.append("VV");        Tensor& VV = T["VV"]; /* Van Vleck determinant */
+  const int numEqs = T.getNumComponents();
+
+  /* Spacetime */
+  Schwarzschild schw(1.0);
 
   /* Use a Runge-Kutta integrator with adaptive step-size */
-  const gsl_odeiv_step_type * T = gsl_odeiv_step_rkf45;
-  gsl_odeiv_step * s = gsl_odeiv_step_alloc (T, NUM_EQS);
+  const gsl_odeiv_step_type * t = gsl_odeiv_step_rkf45;
+  gsl_odeiv_step * s = gsl_odeiv_step_alloc (t, numEqs);
   gsl_odeiv_control * c = gsl_odeiv_control_y_new (1e-10, 1e-10);
-  gsl_odeiv_evolve * e = gsl_odeiv_evolve_alloc (NUM_EQS);
-
+  gsl_odeiv_evolve * e = gsl_odeiv_evolve_alloc (numEqs);
 
   /* Time-like geodesic starting at r=10M and going in to r=4M */
-  struct geodesic_params params = {0.94868329805051379960,3.5355339059327376220,Timelike};
+  struct geodesic_params params =
+    {0.94868329805051379960, 3.5355339059327376220, Timelike, T, schw};
 
-  gsl_odeiv_system sys = {rhs, NULL, NUM_EQS, &params};
+  gsl_odeiv_system sys = {rhs, NULL, numEqs, &params};
 
+  /* Initial Conditions */
   double tau = 0.0, tau1 = 100.0;
   double h = 1e-6;
   double r0 = 10.0;
 
-  /* Initial Condidions */
-  double y[NUM_EQS] = {
-    0, r0, M_PI_2, 0.0, 0.0, /* t, r, theta, phi, r' */
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, /* Q^a'_b' */
-    1.0 /* Delta^1/2 */
-  };
+  x(1) = r0;
+  x(2) = M_PI_2;
+  VV() = 1.0;
+
+  /* Convert tensors to a flat C array which GSL understands */
+  double y[numEqs];
+  T.getComponents(y);
 
   while (tau < tau1)
   {
@@ -118,8 +131,9 @@ int main (int argc, char * argv[])
       break;
 
     /* Output the results */
+    T.setComponents(y);
     printf ("%.5f", tau);
-    for(i=0; i<NUM_EQS; i++)
+    for(int i=0; i<numEqs; i++)
     {
       printf (", %.5f", y[i]);
     }

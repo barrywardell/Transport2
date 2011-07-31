@@ -12,10 +12,22 @@
  */
 
 #include "SpacetimeTensors.h"
+#include <cassert>
 #include <math.h>
 
 Spacetime::Spacetime()
- : guu("^a^b"), gdd("_a_b"), Gudd("^a_b_c"), Ruddd("^a_b_c_d"), Rudddcd("^a_b_c_d_e"), R(0), Rcd("_a")
+{
+  append("guu", "^a^b");          /* Contravariant metric */
+  append("gdd", "_a_b");          /* Covariant metric */
+  append("Gudd", "^a_b_c");       /* Christoffel symbol */
+  append("Ruddd", "^a_b_c_d");    /* Riemann */
+  append("Rudddcd", "^a_b_c_d_e");/* Covariant derivative of Riemann */
+  append("R");                    /* Ricci scalar */
+  append("Rcd", "_a");            /* Covariant derivative of Ricci scalar */
+}
+
+Schwarzschild::Schwarzschild(double mass)
+  : M(mass)
 {
 }
 
@@ -32,6 +44,7 @@ void Schwarzschild::calc_all()
 
 void Schwarzschild::calc_guu()
 {
+  Tensor& guu = (*this)["guu"];
   double sintheta2 = sintheta*sintheta;
   double r2 = r*r;
 
@@ -43,6 +56,7 @@ void Schwarzschild::calc_guu()
 
 void Schwarzschild::calc_gdd()
 {
+  Tensor& gdd = (*this)["gdd"];
   double sintheta2 = sintheta*sintheta;
   double r2 = r*r;
 
@@ -54,6 +68,8 @@ void Schwarzschild::calc_gdd()
 
 void Schwarzschild::calc_Gudd()
 {
+  Tensor& Gudd = (*this)["Gudd"];
+
   Gudd(0, 0, 1) = -(M/((2*M - r)*r));
   Gudd(0, 1, 0) = -(M/((2*M - r)*r));
   Gudd(1, 0, 0) = (M*(-2*M + r))/pow(r,3);
@@ -71,6 +87,8 @@ void Schwarzschild::calc_Gudd()
 
 void Schwarzschild::calc_Ruddd()
 {
+  Tensor& Ruddd = (*this)["Ruddd"];
+
   Ruddd(0, 1, 0, 1) = (-2*M)/((2*M - r)*pow(r,2));
   Ruddd(0, 1, 1, 0) = (2*M)/((2*M - r)*pow(r,2));
   Ruddd(0, 2, 0, 2) = (M*(-2*M + r))/((2*M - r)*r);
@@ -99,6 +117,8 @@ void Schwarzschild::calc_Ruddd()
 
 void Schwarzschild::calc_Rudddcd()
 {
+  Tensor& Rudddcd = (*this)["Rudddcd"];
+
   Rudddcd(0, 1, 0, 1, 1) = (6*M)/((2*M - r)*pow(r,3));
   Rudddcd(0, 1, 0, 2, 2) = (3*M)/pow(r,2);
   Rudddcd(0, 1, 0, 3, 3) = (3*M*pow(sin(theta),2))/pow(r,2);
@@ -159,15 +179,30 @@ void Schwarzschild::calc_Rudddcd()
 
 void Schwarzschild::calc_R()
 {
-  R(0) = 0;
+  Tensor& R = (*this)["R"];
+
+  R() = 0;
 }
 
 /* Covariant derivative of Ricci scalar contracted with 4-velocity */
 void Schwarzschild::calc_Rcd()
 {
+  Tensor& Rcd = (*this)["Rcd"];
+
   Rcd(0) = 0;
   Rcd(1) = 0;
   Rcd(2) = 0;
   Rcd(3) = 0;
 }
 
+void Schwarzschild::setPoint(const Tensor& x)
+{
+  assert(x.getRank() == 1);
+  t = x(0);
+  r = x(1);
+  theta = x(2);
+  phi = x(3);
+
+  sintheta = sin(theta);
+  costheta = cos(theta);
+}

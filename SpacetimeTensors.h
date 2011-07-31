@@ -14,12 +14,7 @@
 #define SPACETIMETENSORS_H
 
 #include "Tensor.h"
-
-struct geodesic_params {
-  double e; /* "Energy" constant of motion */
-  double l; /* "Angular momentum" constant of motion */
-  int type; /* Type of geodesic. 0=null, -1=time-like */
-};
+#include "TensorList.h"
 
 enum GeodesicType {
   Timelike  = -1,
@@ -27,7 +22,7 @@ enum GeodesicType {
   Spacelike = 1
 };
 
-class Spacetime {
+class Spacetime : public TensorList {
   public:
     virtual void calc_all() {};
     virtual void calc_guu() {};
@@ -37,28 +32,17 @@ class Spacetime {
     virtual void calc_Rudddcd() {};
     virtual void calc_R() {};
     virtual void calc_Rcd() {};
+
+    virtual void setPoint(const Tensor& t) {};
+
     Spacetime();
     virtual ~Spacetime() {};
-
-    Tensor guu;     /* Contravariant metric */
-    Tensor gdd;     /* Covariant metric */
-    Tensor Gudd;    /* Christoffel symbol */
-    Tensor Ruddd;   /* Riemann */
-    Tensor Rudddcd; /* Covariant derivative of Riemann */
-    Tensor R;       /* Ricci scalar */
-    Tensor Rcd;     /* Covariant derivative of Ricci scalar */
 };
 
 
 class Schwarzschild : public Spacetime {
   public:
-    /* Spacetime parameters */
-    double M; /* Black Hole Mass */
-    
-    /* Spacetime coordinates */
-    double t, r, theta, phi;
-    double sintheta;
-    double costheta;
+    Schwarzschild(double mass = 1.0);
 
     /* Functions to compute tensor components */
     void calc_all();
@@ -70,7 +54,26 @@ class Schwarzschild : public Spacetime {
     void calc_R();
     void calc_Rcd();
 
-    virtual ~Schwarzschild() {};
+    void setPoint(const Tensor& t);
+
+    /* Spacetime parameters */
+    const double M; /* Black Hole Mass */
+
+  private:
+    /* Spacetime coordinates */
+    double t, r, theta, phi;
+
+    double sintheta;
+    double costheta;
+
+};
+
+struct geodesic_params {
+  double e;           /* "Energy" constant of motion */
+  double l;           /* "Angular momentum" constant of motion */
+  int type;           /* Type of geodesic. 0=null, -1=time-like */
+  TensorList& T;      /* List of evolved tensors */
+  Schwarzschild& s;   /* Spacetime */
 };
 
 #endif
