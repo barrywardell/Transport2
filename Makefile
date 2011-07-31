@@ -1,5 +1,5 @@
-CXXFLAGS=-Wall -g -I./MosquitoTensor/srcs -I/opt/local/include
 LDFLAGS=-L/opt/local/lib -lgsl -lcblas -latlas -lm
+CXXFLAGS=-Wall -g -O2 -I./MosquitoTensor/srcs -I/opt/local/include
 CXX = g++
 
 .PHONY: all
