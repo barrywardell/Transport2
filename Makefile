@@ -10,4 +10,4 @@ VanVleck: VanVleck.cc MosquitoTensor/srcs/Tensor.C Schwarzschild.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ VanVleck.cc Schwarzschild.cc MosquitoTensor/srcs/Tensor.C
 
 clean:
-	rm -f Test
+	rm -f VanVleck
