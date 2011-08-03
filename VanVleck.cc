@@ -27,37 +27,24 @@ int rhs (double tau, const double y[], double f[], void *params)
   struct geodesic_params p = *((struct geodesic_params*) params);
   const double M = p.s.M;
 
-  /* Avoid dividing by zero initially - use l'Hopital's rule */
-  double tauinv;
-  if(tau == 0.)
-    tauinv = 0;
-  else
-    tauinv = 1./tau;
-
   /* Evolved tensors */
   TensorList T(p.T);
   T.setComponents(y);
 
-  Tensor& x  = T["x"];
-  Tensor& ur = T["ur"];
-  Tensor& Q  = T["Q"];
-  Tensor& VV = T["VV"];
+  Tensor &x = T["x"], &ur = T["ur"], &Q = T["Q"], &VV = T["VV"], &E = T["E"];
 
   /* Right hand side tensors */
   TensorList dT(p.T);
   dT.setComponents(f);
 
-  Tensor& dx  = dT["x"];
-  Tensor& dur = dT["ur"];
-  Tensor& dQ  = dT["Q"];
-  Tensor& dVV = dT["VV"];
+  Tensor &dx = dT["x"], &dur = dT["ur"], &dQ = dT["Q"], &dVV = dT["VV"],
+         &dE = dT["E"];
 
   /* Compute metric, Christoffel and Riemann at the current point */
   Schwarzschild& s = p.s;
   s.setPoint(x);
   s.calc_all();
-  Tensor& G = s["Gudd"];
-  Tensor& R = s["Ruddd"];
+  Tensor &G = s["Gudd"], &R = s["Ruddd"];
 
   /* Geodesic equations */
   const double& r = x(1);
@@ -67,17 +54,39 @@ int rhs (double tau, const double y[], double f[], void *params)
   dx(3) = p.l/SQR(r);
   dur() = (SQR(p.l)*(r-3*M)+M*SQR(r)*p.type)/SQR(SQR(r));
   
-  /* Transport equation for Q */
-  dQ = (Q["ac"]*G["cbd"] - G["acd"]*Q["cb"])*dx["d"]
-     - tauinv*(Q["ab"] + Q["ac"]*Q["cb"]) - tau*R["acbd"]*dx["c"]*dx["d"];
+  /* Transport equations, avoid dividing by zero initially - l'Hopital's rule */
+  if (tau == 0.) {
+    /* Transport equation for Q = xi-1 */
+    dQ = (Q["ac"]*G["cbd"] - G["acd"]*Q["cb"])*dx["d"]
+       - tau*R["acbd"]*dx["c"]*dx["d"];
 
-  /* Q(theta,theta) blows up as theta*cot(theta) and makes the numerical
-   * integration break down. Since we know the analytic form, don't compute it
-   * numerically */
-  dQ(2,2) = 0.0;
+    /* Q(theta,theta) blows up as theta*cot(theta) and makes the numerical
+     * integration break down. Since we know the analytic form, don't compute it
+     * numerically */
+    dQ(2,2) = 0.0;
 
-  /* Transport equation for the Van Vleck determinant */
-  dVV = -tauinv*0.5 * VV * Q["aa"];
+    /* Transport equation for the Van Vleck determinant */
+    dVV = 0;
+
+    /* Transport equation for E = 1+eta */
+    dE = E["ac"]*G["cbd"]*dx["d"];
+  } else {
+    double tauinv = 1./tau;
+    /* Transport equation for Q = xi-1 */
+    dQ = (Q["ac"]*G["cbd"] - G["acd"]*Q["cb"])*dx["d"]
+       - tauinv*(Q["ab"] + Q["ac"]*Q["cb"]) - tau*R["acbd"]*dx["c"]*dx["d"];
+
+    /* Q(theta,theta) blows up as theta*cot(theta) and makes the numerical
+     * integration break down. Since we know the analytic form, don't compute it
+     * numerically */
+    dQ(2,2) = 0.0;
+
+    /* Transport equation for the Van Vleck determinant */
+    dVV = -tauinv*0.5 * VV * Q["aa"];
+
+    /* Transport equation for E = 1+eta */
+    dE = E["ac"]*G["cbd"]*dx["d"] - tauinv*(E["ac"]*Q["cb"] - Q["ab"]);
+  }
 
   /* Pack the data back into an array for GSL */
   dT.getComponents(f);
@@ -93,6 +102,7 @@ int main (int argc, char * argv[])
   T.append("ur");        Tensor& ur = T["ur"]; /* Radial 4-velocity */
   T.append("Q", "^a_b"); Tensor& Q  = T["Q"];  /* \sigma^a'_b' - \delta^a'_b' */
   T.append("VV");        Tensor& VV = T["VV"]; /* Van Vleck determinant */
+  T.append("E", "^a_b"); Tensor& E  = T["E"];  /* \sigma^a'_b' - \delta^a'_b' */
   const int numEqs = T.getNumComponents();
 
   /* Spacetime */
