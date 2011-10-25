@@ -17,13 +17,14 @@
 
 Spacetime::Spacetime()
 {
-  append("guu", "^a^b");          /* Contravariant metric */
-  append("gdd", "_a_b");          /* Covariant metric */
-  append("Gudd", "^a_b_c");       /* Christoffel symbol */
-  append("Ruddd", "^a_b_c_d");    /* Riemann */
-  append("Rudddcd", "^a_b_c_d_e");/* Covariant derivative of Riemann */
-  append("R");                    /* Ricci scalar */
-  append("Rcd", "_a");            /* Covariant derivative of Ricci scalar */
+  append("guu", "^a^b");              /* Contravariant metric */
+  append("gdd", "_a_b");              /* Covariant metric */
+  append("Gudd", "^a_b_c");           /* Christoffel symbol */
+  append("Ruddd", "^a_b_c_d");        /* Riemann */
+  append("Ruddd;d", "^a_b_c_d_e");    /* Covariant derivative of Riemann */
+  append("Ruddd;dd", "^a_b_c_d_e_f"); /* Double covariant derivative of Riemann */
+  append("R");                        /* Ricci scalar */
+  append("R;d", "_a");                /* Covariant derivative of Ricci scalar */
 }
 
 Schwarzschild::Schwarzschild(double mass)
@@ -38,6 +39,7 @@ void Schwarzschild::calc_all()
   calc_Gudd();
   calc_Ruddd();
   calc_Rudddcd();
+  calc_Rudddcdd();
   calc_R();
   calc_Rcd();
 }
@@ -117,7 +119,7 @@ void Schwarzschild::calc_Ruddd()
 
 void Schwarzschild::calc_Rudddcd()
 {
-  Tensor& Rudddcd = (*this)["Rudddcd"];
+  Tensor& Rudddcd = (*this)["Ruddd;d"];
 
   Rudddcd(0, 1, 0, 1, 1) = (6*M)/((2*M - r)*pow(r,3));
   Rudddcd(0, 1, 0, 2, 2) = (3*M)/pow(r,2);
@@ -177,6 +179,236 @@ void Schwarzschild::calc_Rudddcd()
   Rudddcd(3, 2, 3, 2, 1) = (-6*M)/pow(r,2);
 }
 
+void Schwarzschild::calc_Rudddcdd()
+{
+  Tensor& Rudddcdd = (*this)["Ruddd;dd"];
+
+  Rudddcdd(0, 1, 0, 1, 0, 0) = (6*pow(M,2))/pow(r,6);
+  Rudddcdd(0, 1, 0, 1, 1, 1) = (6*M*(-9*M + 4*r))/(pow(r,4)*pow(-2*M + r,2));
+  Rudddcdd(0, 1, 0, 1, 2, 2) = (-12*M)/pow(r,3);
+  Rudddcdd(0, 1, 0, 1, 3, 3) = (-12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(0, 1, 0, 2, 1, 2) = (-12*M)/pow(r,3);
+  Rudddcdd(0, 1, 0, 2, 2, 1) = (3*M*(-9*M + 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 1, 0, 3, 1, 3) = (-12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(0, 1, 0, 3, 3, 1) = (-3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 1, 1, 0, 0, 0) = (-6*pow(M,2))/pow(r,6);
+  Rudddcdd(0, 1, 1, 0, 1, 1) = (6*M*(9*M - 4*r))/(pow(r,4)*pow(-2*M + r,2));
+  Rudddcdd(0, 1, 1, 0, 2, 2) = (12*M)/pow(r,3);
+  Rudddcdd(0, 1, 1, 0, 3, 3) = (12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(0, 1, 1, 2, 2, 0) = (3*pow(M,2))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 1, 1, 3, 3, 0) = (3*pow(M,2)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 1, 2, 0, 1, 2) = (12*M)/pow(r,3);
+  Rudddcdd(0, 1, 2, 0, 2, 1) = (3*M*(9*M - 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 1, 2, 1, 2, 0) = (-3*pow(M,2))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 1, 3, 0, 1, 3) = (12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(0, 1, 3, 0, 3, 1) = (3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 1, 3, 1, 3, 0) = (-3*pow(M,2)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 2, 0, 1, 1, 2) = (-12*M)/pow(r,3);
+  Rudddcdd(0, 2, 0, 1, 2, 1) = (3*M*(-9*M + 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 2, 0, 2, 0, 0) = (3*pow(M,2)*(2*M - r))/pow(r,5);
+  Rudddcdd(0, 2, 0, 2, 1, 1) = (3*M*(-9*M + 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 2, 0, 2, 2, 2) = (-9*M*(2*M - r))/pow(r,2);
+  Rudddcdd(0, 2, 0, 2, 3, 3) = (-3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 2, 0, 3, 2, 3) = (-3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 2, 0, 3, 3, 2) = (-3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 2, 1, 0, 1, 2) = (12*M)/pow(r,3);
+  Rudddcdd(0, 2, 1, 0, 2, 1) = (3*M*(9*M - 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 2, 2, 0, 0, 0) = (3*pow(M,2)*(-2*M + r))/pow(r,5);
+  Rudddcdd(0, 2, 2, 0, 1, 1) = (3*M*(9*M - 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 2, 2, 0, 2, 2) = (9*M*(2*M - r))/pow(r,2);
+  Rudddcdd(0, 2, 2, 0, 3, 3) = (3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 2, 2, 3, 3, 0) = (3*pow(M,2)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 2, 3, 0, 2, 3) = (3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 2, 3, 0, 3, 2) = (3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 2, 3, 2, 3, 0) = (-3*pow(M,2)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 3, 0, 1, 1, 3) = (-12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(0, 3, 0, 1, 3, 1) = (-3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 3, 0, 2, 2, 3) = (-3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 3, 0, 2, 3, 2) = (-3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 3, 0, 3, 0, 0) = (3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(0, 3, 0, 3, 1, 1) = (-3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 3, 0, 3, 2, 2) = (-3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 3, 0, 3, 3, 3) = (-9*M*(2*M - r)*pow(sin(theta),4))/pow(r,2);
+  Rudddcdd(0, 3, 1, 0, 1, 3) = (12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(0, 3, 1, 0, 3, 1) = (3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 3, 2, 0, 2, 3) = (3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 3, 2, 0, 3, 2) = (3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 3, 2, 3, 2, 0) = (-3*pow(M,2)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 3, 3, 0, 0, 0) = (-3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(0, 3, 3, 0, 1, 1) = (3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(0, 3, 3, 0, 2, 2) = (3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(0, 3, 3, 0, 3, 3) = (9*M*(2*M - r)*pow(sin(theta),4))/pow(r,2);
+  Rudddcdd(0, 3, 3, 2, 2, 0) = (3*pow(M,2)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 0, 0, 1, 0, 0) = (6*pow(M,2)*pow(-2*M + r,2))/pow(r,8);
+  Rudddcdd(1, 0, 0, 1, 1, 1) = (6*M*(-9*M + 4*r))/pow(r,6);
+  Rudddcdd(1, 0, 0, 1, 2, 2) = (-12*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(1, 0, 0, 1, 3, 3) = (-12*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 0, 0, 2, 1, 2) = (-12*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(1, 0, 0, 2, 2, 1) = (-3*M*(9*M - 4*r)*(2*M - r))/pow(r,5);
+  Rudddcdd(1, 0, 0, 3, 1, 3) = (-12*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 0, 0, 3, 3, 1) = (-3*M*(9*M - 4*r)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 0, 1, 0, 0, 0) = (-6*pow(M,2)*pow(-2*M + r,2))/pow(r,8);
+  Rudddcdd(1, 0, 1, 0, 1, 1) = (6*M*(9*M - 4*r))/pow(r,6);
+  Rudddcdd(1, 0, 1, 0, 2, 2) = (12*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(1, 0, 1, 0, 3, 3) = (12*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 0, 1, 2, 2, 0) = (3*pow(M,2)*(2*M - r))/pow(r,5);
+  Rudddcdd(1, 0, 1, 3, 3, 0) = (3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 0, 2, 0, 1, 2) = (12*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(1, 0, 2, 0, 2, 1) = (3*M*(9*M - 4*r)*(2*M - r))/pow(r,5);
+  Rudddcdd(1, 0, 2, 1, 2, 0) = (3*pow(M,2)*(-2*M + r))/pow(r,5);
+  Rudddcdd(1, 0, 3, 0, 1, 3) = (12*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 0, 3, 0, 3, 1) = (3*M*(9*M - 4*r)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 0, 3, 1, 3, 0) = (-3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 2, 0, 1, 2, 0) = (3*pow(M,2)*(-2*M + r))/pow(r,5);
+  Rudddcdd(1, 2, 1, 0, 2, 0) = (3*pow(M,2)*(2*M - r))/pow(r,5);
+  Rudddcdd(1, 2, 1, 2, 0, 0) = (3*pow(M,2)*(2*M - r))/pow(r,5);
+  Rudddcdd(1, 2, 1, 2, 1, 1) = (3*M*(-9*M + 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(1, 2, 1, 2, 2, 2) = (3*M*(-2*M + r))/pow(r,2);
+  Rudddcdd(1, 2, 1, 2, 3, 3) = (-9*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 2, 1, 3, 2, 3) = (3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 2, 1, 3, 3, 2) = (3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 2, 2, 1, 0, 0) = (3*pow(M,2)*(-2*M + r))/pow(r,5);
+  Rudddcdd(1, 2, 2, 1, 1, 1) = (3*M*(9*M - 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(1, 2, 2, 1, 2, 2) = (3*M*(2*M - r))/pow(r,2);
+  Rudddcdd(1, 2, 2, 1, 3, 3) = (9*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 2, 2, 3, 1, 3) = (12*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 2, 2, 3, 3, 1) = (3*M*(9*M - 4*r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 2, 3, 1, 2, 3) = (-3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 2, 3, 1, 3, 2) = (-3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 2, 3, 2, 1, 3) = (-12*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 2, 3, 2, 3, 1) = (-3*M*(9*M - 4*r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 3, 0, 1, 3, 0) = (-3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 3, 1, 0, 3, 0) = (3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 3, 1, 2, 2, 3) = (3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 3, 1, 2, 3, 2) = (3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 3, 1, 3, 0, 0) = (3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 3, 1, 3, 1, 1) = (-3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(1, 3, 1, 3, 2, 2) = (-9*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 3, 1, 3, 3, 3) = (-3*M*(2*M - r)*pow(sin(theta),4))/pow(r,2);
+  Rudddcdd(1, 3, 2, 1, 2, 3) = (-3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 3, 2, 1, 3, 2) = (-3*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 3, 2, 3, 1, 2) = (-12*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 3, 2, 3, 2, 1) = (-3*M*(9*M - 4*r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 3, 3, 1, 0, 0) = (-3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(1, 3, 3, 1, 1, 1) = (3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(1, 3, 3, 1, 2, 2) = (9*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 3, 3, 1, 3, 3) = (3*M*(2*M - r)*pow(sin(theta),4))/pow(r,2);
+  Rudddcdd(1, 3, 3, 2, 1, 2) = (12*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(1, 3, 3, 2, 2, 1) = (3*M*(9*M - 4*r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(2, 0, 0, 1, 1, 2) = (12*M*(2*M - r))/pow(r,6);
+  Rudddcdd(2, 0, 0, 1, 2, 1) = (3*M*(9*M - 4*r))/pow(r,6);
+  Rudddcdd(2, 0, 0, 2, 0, 0) = (-3*pow(M,2)*pow(-2*M + r,2))/pow(r,8);
+  Rudddcdd(2, 0, 0, 2, 1, 1) = (3*M*(9*M - 4*r))/pow(r,6);
+  Rudddcdd(2, 0, 0, 2, 2, 2) = (9*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(2, 0, 0, 2, 3, 3) = (3*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 0, 0, 3, 2, 3) = (3*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 0, 0, 3, 3, 2) = (3*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 0, 1, 0, 1, 2) = (12*M*(-2*M + r))/pow(r,6);
+  Rudddcdd(2, 0, 1, 0, 2, 1) = (3*M*(-9*M + 4*r))/pow(r,6);
+  Rudddcdd(2, 0, 2, 0, 0, 0) = (3*pow(M,2)*pow(-2*M + r,2))/pow(r,8);
+  Rudddcdd(2, 0, 2, 0, 1, 1) = (3*M*(-9*M + 4*r))/pow(r,6);
+  Rudddcdd(2, 0, 2, 0, 2, 2) = (-9*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(2, 0, 2, 0, 3, 3) = (-3*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 0, 2, 3, 3, 0) = (-3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 0, 3, 0, 2, 3) = (-3*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 0, 3, 0, 3, 2) = (-3*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 0, 3, 2, 3, 0) = (3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 1, 0, 1, 2, 0) = (-3*pow(M,2))/pow(r,6);
+  Rudddcdd(2, 1, 1, 0, 2, 0) = (3*pow(M,2))/pow(r,6);
+  Rudddcdd(2, 1, 1, 2, 0, 0) = (3*pow(M,2))/pow(r,6);
+  Rudddcdd(2, 1, 1, 2, 1, 1) = (3*M*(-9*M + 4*r))/(pow(r,4)*pow(-2*M + r,2));
+  Rudddcdd(2, 1, 1, 2, 2, 2) = (-3*M)/pow(r,3);
+  Rudddcdd(2, 1, 1, 2, 3, 3) = (-9*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 1, 1, 3, 2, 3) = (3*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 1, 1, 3, 3, 2) = (3*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 1, 2, 1, 0, 0) = (-3*pow(M,2))/pow(r,6);
+  Rudddcdd(2, 1, 2, 1, 1, 1) = (3*M*(9*M - 4*r))/(pow(r,4)*pow(-2*M + r,2));
+  Rudddcdd(2, 1, 2, 1, 2, 2) = (3*M)/pow(r,3);
+  Rudddcdd(2, 1, 2, 1, 3, 3) = (9*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 1, 2, 3, 1, 3) = (12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 1, 2, 3, 3, 1) = (3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(2, 1, 3, 1, 2, 3) = (-3*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 1, 3, 1, 3, 2) = (-3*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 1, 3, 2, 1, 3) = (-12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 1, 3, 2, 3, 1) = (-3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(2, 3, 0, 2, 3, 0) = (3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 3, 0, 3, 2, 0) = (-3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 3, 1, 2, 1, 3) = (-12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 3, 1, 2, 3, 1) = (-3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(2, 3, 1, 3, 1, 2) = (12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 3, 1, 3, 2, 1) = (3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(2, 3, 2, 0, 3, 0) = (-3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 3, 2, 1, 1, 3) = (12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 3, 2, 1, 3, 1) = (3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(2, 3, 2, 3, 0, 0) = (-6*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 3, 2, 3, 1, 1) = (6*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(2, 3, 2, 3, 2, 2) = (12*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(2, 3, 2, 3, 3, 3) = (12*M*(2*M - r)*pow(sin(theta),4))/pow(r,2);
+  Rudddcdd(2, 3, 3, 0, 2, 0) = (3*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 3, 3, 1, 1, 2) = (-12*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(2, 3, 3, 1, 2, 1) = (-3*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(2, 3, 3, 2, 0, 0) = (6*pow(M,2)*(2*M - r)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(2, 3, 3, 2, 1, 1) = (-6*M*(9*M - 4*r)*pow(sin(theta),2))/((2*M - r)*pow(r,3));
+  Rudddcdd(2, 3, 3, 2, 2, 2) = (-12*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(2, 3, 3, 2, 3, 3) = (-12*M*(2*M - r)*pow(sin(theta),4))/pow(r,2);
+  Rudddcdd(3, 0, 0, 1, 1, 3) = (12*M*(2*M - r))/pow(r,6);
+  Rudddcdd(3, 0, 0, 1, 3, 1) = (3*M*(9*M - 4*r))/pow(r,6);
+  Rudddcdd(3, 0, 0, 2, 2, 3) = (3*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(3, 0, 0, 2, 3, 2) = (3*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(3, 0, 0, 3, 0, 0) = (-3*pow(M,2)*pow(-2*M + r,2))/pow(r,8);
+  Rudddcdd(3, 0, 0, 3, 1, 1) = (3*M*(9*M - 4*r))/pow(r,6);
+  Rudddcdd(3, 0, 0, 3, 2, 2) = (3*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(3, 0, 0, 3, 3, 3) = (9*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(3, 0, 1, 0, 1, 3) = (12*M*(-2*M + r))/pow(r,6);
+  Rudddcdd(3, 0, 1, 0, 3, 1) = (3*M*(-9*M + 4*r))/pow(r,6);
+  Rudddcdd(3, 0, 2, 0, 2, 3) = (-3*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(3, 0, 2, 0, 3, 2) = (-3*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(3, 0, 2, 3, 2, 0) = (3*pow(M,2)*(2*M - r))/pow(r,5);
+  Rudddcdd(3, 0, 3, 0, 0, 0) = (3*pow(M,2)*pow(-2*M + r,2))/pow(r,8);
+  Rudddcdd(3, 0, 3, 0, 1, 1) = (3*M*(-9*M + 4*r))/pow(r,6);
+  Rudddcdd(3, 0, 3, 0, 2, 2) = (-3*M*pow(-2*M + r,2))/pow(r,5);
+  Rudddcdd(3, 0, 3, 0, 3, 3) = (-9*M*pow(-2*M + r,2)*pow(sin(theta),2))/pow(r,5);
+  Rudddcdd(3, 0, 3, 2, 2, 0) = (3*pow(M,2)*(-2*M + r))/pow(r,5);
+  Rudddcdd(3, 1, 0, 1, 3, 0) = (-3*pow(M,2))/pow(r,6);
+  Rudddcdd(3, 1, 1, 0, 3, 0) = (3*pow(M,2))/pow(r,6);
+  Rudddcdd(3, 1, 1, 2, 2, 3) = (3*M)/pow(r,3);
+  Rudddcdd(3, 1, 1, 2, 3, 2) = (3*M)/pow(r,3);
+  Rudddcdd(3, 1, 1, 3, 0, 0) = (3*pow(M,2))/pow(r,6);
+  Rudddcdd(3, 1, 1, 3, 1, 1) = (3*M*(-9*M + 4*r))/(pow(r,4)*pow(-2*M + r,2));
+  Rudddcdd(3, 1, 1, 3, 2, 2) = (-9*M)/pow(r,3);
+  Rudddcdd(3, 1, 1, 3, 3, 3) = (-3*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(3, 1, 2, 1, 2, 3) = (-3*M)/pow(r,3);
+  Rudddcdd(3, 1, 2, 1, 3, 2) = (-3*M)/pow(r,3);
+  Rudddcdd(3, 1, 2, 3, 1, 2) = (-12*M)/pow(r,3);
+  Rudddcdd(3, 1, 2, 3, 2, 1) = (3*M*(-9*M + 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(3, 1, 3, 1, 0, 0) = (-3*pow(M,2))/pow(r,6);
+  Rudddcdd(3, 1, 3, 1, 1, 1) = (3*M*(9*M - 4*r))/(pow(r,4)*pow(-2*M + r,2));
+  Rudddcdd(3, 1, 3, 1, 2, 2) = (9*M)/pow(r,3);
+  Rudddcdd(3, 1, 3, 1, 3, 3) = (3*M*pow(sin(theta),2))/pow(r,3);
+  Rudddcdd(3, 1, 3, 2, 1, 2) = (12*M)/pow(r,3);
+  Rudddcdd(3, 1, 3, 2, 2, 1) = (3*M*(9*M - 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(3, 2, 0, 2, 3, 0) = (3*pow(M,2)*(-2*M + r))/pow(r,5);
+  Rudddcdd(3, 2, 0, 3, 2, 0) = (3*pow(M,2)*(2*M - r))/pow(r,5);
+  Rudddcdd(3, 2, 1, 2, 1, 3) = (12*M)/pow(r,3);
+  Rudddcdd(3, 2, 1, 2, 3, 1) = (3*M*(9*M - 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(3, 2, 1, 3, 1, 2) = (-12*M)/pow(r,3);
+  Rudddcdd(3, 2, 1, 3, 2, 1) = (3*M*(-9*M + 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(3, 2, 2, 0, 3, 0) = (3*pow(M,2)*(2*M - r))/pow(r,5);
+  Rudddcdd(3, 2, 2, 1, 1, 3) = (-12*M)/pow(r,3);
+  Rudddcdd(3, 2, 2, 1, 3, 1) = (3*M*(-9*M + 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(3, 2, 2, 3, 0, 0) = (6*pow(M,2)*(2*M - r))/pow(r,5);
+  Rudddcdd(3, 2, 2, 3, 1, 1) = (6*M*(-9*M + 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(3, 2, 2, 3, 2, 2) = (-12*M*(2*M - r))/pow(r,2);
+  Rudddcdd(3, 2, 2, 3, 3, 3) = (-12*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+  Rudddcdd(3, 2, 3, 0, 2, 0) = (3*pow(M,2)*(-2*M + r))/pow(r,5);
+  Rudddcdd(3, 2, 3, 1, 1, 2) = (12*M)/pow(r,3);
+  Rudddcdd(3, 2, 3, 1, 2, 1) = (3*M*(9*M - 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(3, 2, 3, 2, 0, 0) = (-6*pow(M,2)*(2*M - r))/pow(r,5);
+  Rudddcdd(3, 2, 3, 2, 1, 1) = (6*M*(9*M - 4*r))/((2*M - r)*pow(r,3));
+  Rudddcdd(3, 2, 3, 2, 2, 2) = (12*M*(2*M - r))/pow(r,2);
+  Rudddcdd(3, 2, 3, 2, 3, 3) = (12*M*(2*M - r)*pow(sin(theta),2))/pow(r,2);
+}
+
 void Schwarzschild::calc_R()
 {
   Tensor& R = (*this)["R"];
@@ -187,7 +419,7 @@ void Schwarzschild::calc_R()
 /* Covariant derivative of Ricci scalar contracted with 4-velocity */
 void Schwarzschild::calc_Rcd()
 {
-  Tensor& Rcd = (*this)["Rcd"];
+  Tensor& Rcd = (*this)["R;d"];
 
   Rcd(0) = 0;
   Rcd(1) = 0;

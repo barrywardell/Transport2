@@ -51,6 +51,7 @@ class Schwarzschild : public Spacetime {
     void calc_Gudd();
     void calc_Ruddd();
     void calc_Rudddcd();
+    void calc_Rudddcdd();
     void calc_R();
     void calc_Rcd();
 
