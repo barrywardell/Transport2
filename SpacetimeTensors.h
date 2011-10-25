@@ -16,6 +16,8 @@
 #include "Tensor.h"
 #include "TensorList.h"
 
+using namespace Mosquito;
+
 enum GeodesicType {
   Timelike  = -1,
   Null      = 0,

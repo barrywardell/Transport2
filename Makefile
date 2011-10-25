@@ -7,7 +7,7 @@ CXX = g++
 all: VanVleck
 
 VanVleck: *.cc *.h MosquitoTensor/srcs/*.C MosquitoTensor/srcs/*.h
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ VanVleck.cc Schwarzschild.cc MosquitoTensor/srcs/Tensor.C MosquitoTensor/srcs/TensorList.C
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ VanVleck.cc Schwarzschild.cc MosquitoTensor/srcs/Tensor.C MosquitoTensor/srcs/TensorBase.C MosquitoTensor/srcs/IndexedTensor.C MosquitoTensor/srcs/TensorList.C
 
 clean:
 	rm -f VanVleck
