@@ -394,10 +394,10 @@ int main (int argc, char * argv[])
 
     /* Output the results */
     T.setComponents(y);
-    printf ("%.5f", tau);
+    printf ("%.5g", tau);
     for(int i=0; i<numEqs; i++)
     {
-      printf (", %.5f", y[i]);
+      printf (", %.5g", y[i]);
     }
     printf("\n");
 
