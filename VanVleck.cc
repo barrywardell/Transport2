@@ -327,7 +327,6 @@ int main (int argc, char * argv[])
   /* Spacetime */
   Schwarzschild schw(1.0);
   Tensor &R  = schw["Ruddd"];
-  Tensor &gu = schw["guu"];
   Tensor &RicciScalar = schw["R"];
 
   /* Use a Runge-Kutta integrator with adaptive step-size */
