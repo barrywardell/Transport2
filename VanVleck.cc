@@ -402,7 +402,7 @@ int main (int argc, char * argv[])
     printf("\n");
 
     /* Exit if step size get smaller than 10^-12 */
-    if (h < 1e-13)
+    if (h < 1e-13 || x(3) > 3.1)
     {
       fprintf(stderr,"Error: step size %e less than 1e-13 is not allowed.\n",h);
       break;
