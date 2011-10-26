@@ -333,7 +333,7 @@ int main (int argc, char * argv[])
   /* Use a Runge-Kutta integrator with adaptive step-size */
   const gsl_odeiv_step_type * t = gsl_odeiv_step_rkf45;
   gsl_odeiv_step * s = gsl_odeiv_step_alloc (t, numEqs);
-  gsl_odeiv_control * c = gsl_odeiv_control_y_new (1e-10, 1e-10);
+  gsl_odeiv_control * c = gsl_odeiv_control_standard_new (1e-6, 1e-6, 1.0, 1.0);
   gsl_odeiv_evolve * e = gsl_odeiv_evolve_alloc (numEqs);
 
   /* Time-like geodesic starting at r=10M and going in to r=4M */
