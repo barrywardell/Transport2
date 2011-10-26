@@ -336,9 +336,9 @@ int main (int argc, char * argv[])
   gsl_odeiv_control * c = gsl_odeiv_control_standard_new (1e-6, 1e-6, 1.0, 1.0);
   gsl_odeiv_evolve * e = gsl_odeiv_evolve_alloc (numEqs);
 
-  /* Time-like geodesic starting at r=10M and going in to r=4M */
+  /* Time-like circular geodesic at r=10M */
   struct geodesic_params params =
-    {0.94868329805051379960, 3.5355339059327376220, Timelike, T, schw};
+    {0.956183, 3.77964, Timelike, T, schw};
 
   gsl_odeiv_system sys = {rhs, NULL, numEqs, &params};
 
