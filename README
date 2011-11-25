@@ -1,0 +1,56 @@
+Transport 2
+------------------------------------------------------------------------------
+Numerical code for integrating the transport equation for V0 (appearing in the
+Hadamard form of the Green function for the wave equation in curved spacetime)
+along a geodesic.
+
+Getting the code
+----------------
+To get the code, run
+
+git clone --recursive git://github.com/barrywardell/transport2
+
+Compiling
+---------
+This code requires the GNU Scientific Library 
+(http://www.gnu.org/software/gsl/). Once the GSL is installed,
+the code can be compiled by running 'make'.
+
+Usage
+-----
+The code parameters for the geodesic are currently hardcoded
+into the main function in transport.cc. There are no command line
+arguments available.
+
+Changelog
+---------
+25 Nov 2011	Initial version released
+
+License
+-------
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Authors
+-------
+
+Barry Wardell
+
+CASL
+University College Dublin
+8 Belfield Office Park
+Clonskeagh
+Dublin 4
+
+http://www.barrywardell.net
+

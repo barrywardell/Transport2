@@ -1,4 +1,4 @@
-/* Numerically solve the transport equation for the Van Vleck determinant
+/* Numerically solve the transport equation for the Green function
  * along a geodesic.
  *
  * Copyright (C) 2011 Barry Wardell
